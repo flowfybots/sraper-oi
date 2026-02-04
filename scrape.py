@@ -1,1 +1,2 @@
-print("Hola 👋 el scraper se ejecutó correctamente")
+from datetime import datetime
+print("✅ SCRAPER OK - corrió a:", datetime.now().isoformat())
