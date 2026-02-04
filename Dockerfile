@@ -1,8 +1,12 @@
-FROM python:3.11-alpine
+FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apk add --no-cache tzdata busybox-suid
+# zona horaria + cron
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tzdata cron \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV TZ=America/Bogota
 
 COPY requirements.txt .
@@ -10,6 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY scrape.py /app/scrape.py
 
-RUN echo "* * * * * python /app/scrape.py >> /var/log/scraper.log 2>&1" >> /etc/crontabs/root
+# (POR AHORA) cada minuto para probar
+RUN echo "* * * * * python /app/scrape.py >> /var/log/scraper.log 2>&1" > /etc/cron.d/scraper \
+    && chmod 0644 /etc/cron.d/scraper \
+    && crontab /etc/cron.d/scraper
 
-CMD ["/usr/sbin/crond", "-f", "-l", "8"]
+CMD ["cron", "-f"]
